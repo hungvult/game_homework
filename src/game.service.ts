@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Item } from './entities/item.entity';
 import { Player } from './entities/player.entity';
 import { InventoryItem } from './entities/inventory-item.entity';
@@ -196,4 +196,43 @@ export class GameService {
 
 
   // STEP 5: leaderboard({ page, limit }) without the N+1 problem
+  async getLeaderboard({ page = 1, limit = 10 }: { page?: number; limit?: number }) {
+    const skip = (page - 1) * limit;
+
+    const [players, total] = await this.playerRepo.findAndCount({
+      order: { xp: 'DESC', id: 'ASC' },
+      skip,
+      take: limit,
+    });
+
+    if (players.length === 0) {
+      return { data: [], page, limit, total };
+    }
+
+    const playerIds = players.map((player) => player.id);
+    const inventories = await this.inventoryItemRepo.find({
+      where: { playerId: In(playerIds) },
+      relations: { item: true },
+    });
+
+    const bonusMap = new Map<number, number>();
+    for (const row of inventories) {
+      bonusMap.set(
+        row.playerId,
+        (bonusMap.get(row.playerId) ?? 0) + row.item.attack * row.quantity,
+      );
+    }
+
+    const data = players.map((player, index) => ({
+      rank: skip + index + 1,
+      id: player.id,
+      name: player.name,
+      level: 1 + Math.floor(player.xp / 100),
+      xp: player.xp,
+      gold: player.gold,
+      attack: 1 + (bonusMap.get(player.id) ?? 0),
+    }));
+
+    return { data, page, limit, total };
+  }
 }

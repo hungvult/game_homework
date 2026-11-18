@@ -58,4 +58,8 @@ export class GameController {
   }
 
   // STEP 5: @Get('leaderboard')
+  @Get("leaderboard")
+  async getLeaderboard(@Query() query: PageQueryDto) {
+    return await this.game.getLeaderboard({ page: query.page, limit: query.limit });
+  }
 }
