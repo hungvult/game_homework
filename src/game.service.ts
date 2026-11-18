@@ -83,6 +83,41 @@ export class GameService {
   }
 
   // STEP 3: attack(id)
+  async attack(id: number) {
+    const player = await this.playerRepo.findOneBy({ id });
+    if (!player) {
+      throw new NotFoundException(`Player with id ${id} not found.`);
+    }
+
+    const { monster } = this.toPlayerView(player);
+    const attack = 1;
+    const newHp = Math.max(0, monster.hp - attack);
+    const defeated = newHp <= 0;
+
+    let reward: { gold: number; xp: number } | null = null;
+    if (defeated) {
+      reward = {
+        gold: 5 + player.kills * 2,
+        xp: 25,
+      };
+      player.gold += reward.gold;
+      player.xp += reward.xp;
+      player.kills += 1;
+      player.monsterHp = null;
+    } else {
+      player.monsterHp = newHp;
+    }
+
+    const savedPlayer = await this.playerRepo.save(player);
+
+    return {
+      damage: attack,
+      defeated,
+      reward,
+      player: this.toPlayerView(savedPlayer, attack),
+    };
+  }
+
   // STEP 4: inventory(id), buy(playerId, itemId), attackOf(playerId)
   // STEP 5: leaderboard({ page, limit }) without the N+1 problem
 }

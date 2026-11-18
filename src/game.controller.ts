@@ -38,6 +38,11 @@ export class GameController {
   }
 
   // STEP 3: @Post('players/:id/attack')
+  @Post("players/:id/attack")
+  async attack(@Param("id", ParseIntPipe) id: number) {
+    return await this.game.attack(id);
+  }
+
   // STEP 4: @Get('players/:id/inventory'), @Post('players/:id/buy')
   // STEP 5: @Get('leaderboard')
 }
