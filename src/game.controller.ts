@@ -1,6 +1,7 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, Query } from "@nestjs/common";
 import { GameService } from "./game.service";
 import { DataSource } from "typeorm";
+import { PageQueryDto } from "./common/dto/page-query.dto";
 
 @Controller()
 export class GameController {
@@ -20,6 +21,11 @@ export class GameController {
   }
 
   // STEP 1: @Get('items')
+  @Get("items")
+  async getItems(@Query() query: PageQueryDto) {
+    return await this.game.getItems({ page: query.page, limit: query.limit });
+  }
+
   // STEP 2: @Post('players'), @Get('players/:id')
   // STEP 3: @Post('players/:id/attack')
   // STEP 4: @Get('players/:id/inventory'), @Post('players/:id/buy')
