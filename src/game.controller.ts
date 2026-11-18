@@ -44,5 +44,18 @@ export class GameController {
   }
 
   // STEP 4: @Get('players/:id/inventory'), @Post('players/:id/buy')
+  @Get("players/:id/inventory")
+  async getInventoriesByPlayerId(@Param("id", ParseIntPipe) id: number) {
+    return await this.game.getInventoriesByPlayerId(id);
+  }
+
+  @Post("players/:id/buy")
+  async buyItemByPlayerId(
+    @Param("id", ParseIntPipe) id: number,
+    @Body("itemId", ParseIntPipe) itemId: number,
+  ) {
+    return await this.game.buyItemByPlayerId(id, itemId);
+  }
+
   // STEP 5: @Get('leaderboard')
 }
